@@ -164,21 +164,40 @@ model = tf.keras.models.Model(input_img,dec) #passing img through layers
 model.compile(optimizer='adam', loss='mean_squared_error',metrics=['accuracy'])
 
 EPOCHS = 100
-
+"""
 for epochs in range(EPOCHS): #nach testen etwa 100-150 iterationen, mehr nicht nötig
     history = model.fit(train_imgs,train_imgs,epochs=1, validation_data=(test_imgs,test_imgs)) #training
     decoded = model.predict(train_imgs)
     decoded_test = model.predict(test_imgs)
     random_train_no = random.randint(0,len(train_imgs)-10)
     random_test_no = random.randint(0,len(test_imgs)-10)
-    if epochs % 20 == 0: # plotting a few test images every 20 epochs to check accuracy, checking 10 at a time
-        plot_reconstructions(train_imgs[random_train_no:random_train_no+10],decoded[random_train_no:random_train_no+10])
-        plot_reconstructions(test_imgs[random_test_no:random_test_no+10],decoded_test[random_test_no:random_test_no+10])
+    #if epochs % 20 == 0: # plotting a few test images every 20 epochs to check accuracy, checking 10 at a time
+     #   plot_reconstructions(train_imgs[random_train_no:random_train_no+10],decoded[random_train_no:random_train_no+10])
+      #  plot_reconstructions(test_imgs[random_test_no:random_test_no+10],decoded_test[random_test_no:random_test_no+10])"""
 
-plot_reconstructions(train_imgs[random_train_no:random_train_no+10],decoded[random_train_no:random_train_no+10])
-plot_reconstructions(test_imgs[random_test_no:random_test_no+10],decoded_test[random_test_no:random_test_no+10])
+
+history = model.fit(train_imgs,train_imgs,epochs=EPOCHS, validation_data=(test_imgs,test_imgs))
 results = model.evaluate(test_imgs,test_imgs)
-print(results)
+print("Results:",results)
+
+anomaly = []
+a_orig = []
+a_dec = []
+decoded = model.predict(test_imgs)
+for i in range(len(test_imgs)):
+    diff = test_imgs[i]-decoded[i]
+    loss = np.sum(diff*diff)
+    anomaly.append((test_imgs[i],decoded[i],loss))
+
+anomaly = sorted(anomaly,key=lambda tup: tup[2], reverse=True)[:20]
+
+for x,y,z in anomaly:
+    a_orig.append(x)
+    a_dec.append(y)
+
+plot_reconstructions(a_orig,a_dec)
+
+
 
 
 history_dict = history.history
